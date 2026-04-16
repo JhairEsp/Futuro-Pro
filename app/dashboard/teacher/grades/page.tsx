@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { DashboardLayout } from '@/components/dashboard-layout'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { BarChart3, Users, ChevronDown } from 'lucide-react'
 
 interface Grade {
   id: string
@@ -96,7 +96,7 @@ export default function GradesPage() {
     const scoreNum = score ? parseFloat(score) : null
 
     if (scoreNum && (scoreNum < 0 || scoreNum > 100)) {
-      alert('La calificación debe estar entre 0 y 100')
+      alert('La calificacion debe estar entre 0 y 100')
       return
     }
 
@@ -128,89 +128,131 @@ export default function GradesPage() {
     fetchGrades(selectedClassroom)
   }
 
+  const getScoreColor = (score: number | null) => {
+    if (score === null) return ''
+    if (score >= 16) return 'text-primary'
+    if (score >= 12) return 'text-primary/70'
+    if (score >= 11) return 'text-warning'
+    return 'text-destructive'
+  }
+
   return (
-    <DashboardLayout role="teacher" title="Gestión de Calificaciones">
+    <DashboardLayout role="teacher" title="Gestion de Calificaciones">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-slate-900">Calificaciones por Examen</h3>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h3 className="text-xl font-semibold text-foreground">Calificaciones por Examen</h3>
+            <p className="text-sm text-muted-foreground mt-1">Registra y actualiza las notas de tus estudiantes</p>
+          </div>
+          
           {classrooms.length > 0 && (
-            <select
-              value={selectedClassroom}
-              onChange={(e) => {
-                setSelectedClassroom(e.target.value)
-                fetchGrades(e.target.value)
-              }}
-              className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {classrooms.map(classroom => (
-                <option key={classroom.id} value={classroom.id}>
-                  {classroom.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={selectedClassroom}
+                onChange={(e) => {
+                  setSelectedClassroom(e.target.value)
+                  fetchGrades(e.target.value)
+                }}
+                className="appearance-none px-4 py-2.5 pr-10 bg-secondary/50 border border-border/50 rounded-xl text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 cursor-pointer"
+              >
+                {classrooms.map(classroom => (
+                  <option key={classroom.id} value={classroom.id} className="bg-card text-foreground">
+                    {classroom.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            </div>
           )}
         </div>
 
+        {/* Content */}
         {loading ? (
-          <div className="text-center py-8">Cargando...</div>
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="relative inline-flex">
+                <div className="w-12 h-12 rounded-full border-4 border-secondary" />
+                <div className="absolute inset-0 w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+              </div>
+              <p className="text-muted-foreground mt-4">Cargando calificaciones...</p>
+            </div>
+          </div>
         ) : gradesData.length === 0 ? (
-          <Card className="p-8 text-center text-slate-600">
-            No hay estudiantes en este salón.
+          <Card className="glass-card p-12 text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-primary" />
+            </div>
+            <h4 className="text-lg font-semibold text-foreground mb-2">Sin estudiantes</h4>
+            <p className="text-muted-foreground">No hay estudiantes inscritos en este salon.</p>
           </Card>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-100 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Estudiante</th>
-                  {[1, 2, 3, 4, 5, 6, 7].map(exam => (
-                    <th key={exam} className="px-4 py-3 text-center text-sm font-semibold text-slate-900">
-                      Ex. {exam}
+          <Card className="glass-card overflow-hidden animate-fade-in">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full">
+                <thead className="bg-secondary/50 border-b border-border/50">
+                  <tr>
+                    <th className="px-4 lg:px-6 py-4 text-left text-sm font-semibold text-foreground sticky left-0 bg-secondary/50 z-10">
+                      Estudiante
                     </th>
-                  ))}
-                  <th className="px-6 py-3 text-center text-sm font-semibold text-slate-900">Promedio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {gradesData.map(student => {
-                  const scores = student.grades
-                    .map(g => g.score)
-                    .filter((s): s is number => s !== null)
-                  const average = scores.length > 0
-                    ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2)
-                    : '-'
+                    {[1, 2, 3, 4, 5, 6, 7].map(exam => (
+                      <th key={exam} className="px-2 lg:px-4 py-4 text-center text-sm font-semibold text-foreground whitespace-nowrap">
+                        Ex. {exam}
+                      </th>
+                    ))}
+                    <th className="px-4 lg:px-6 py-4 text-center text-sm font-semibold text-foreground">
+                      <div className="flex items-center justify-center gap-2">
+                        <BarChart3 className="w-4 h-4" />
+                        Promedio
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gradesData.map((student, index) => {
+                    const scores = student.grades
+                      .map(g => g.score)
+                      .filter((s): s is number => s !== null)
+                    const average = scores.length > 0
+                      ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2)
+                      : '-'
 
-                  return (
-                    <tr key={student.enrollment_id} className="border-b border-slate-200 hover:bg-slate-50">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                        {student.student_name}
-                      </td>
-                      {[1, 2, 3, 4, 5, 6, 7].map(examNum => {
-                        const grade = student.grades.find(g => g.exam_number === examNum)
-                        return (
-                          <td key={examNum} className="px-4 py-4 text-center">
-                            <Input
-                              type="number"
-                              min="0"
-                              max="100"
-                              step="0.01"
-                              value={grade?.score ?? ''}
-                              onChange={(e) => handleGradeChange(student.enrollment_id, examNum, e.target.value)}
-                              className="w-16 text-center"
-                              placeholder="-"
-                            />
-                          </td>
-                        )
-                      })}
-                      <td className="px-6 py-4 text-center text-sm font-semibold text-slate-900">
-                        {average}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                    return (
+                      <tr 
+                        key={student.enrollment_id} 
+                        className="border-b border-border/50 hover:bg-secondary/30 transition-colors duration-200 animate-fade-in"
+                        style={{ animationDelay: `${index * 0.05}s` }}
+                      >
+                        <td className="px-4 lg:px-6 py-4 text-sm font-medium text-foreground sticky left-0 bg-card/80 backdrop-blur-sm z-10">
+                          {student.student_name}
+                        </td>
+                        {[1, 2, 3, 4, 5, 6, 7].map(examNum => {
+                          const grade = student.grades.find(g => g.exam_number === examNum)
+                          return (
+                            <td key={examNum} className="px-2 lg:px-4 py-4 text-center">
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.01"
+                                value={grade?.score ?? ''}
+                                onChange={(e) => handleGradeChange(student.enrollment_id, examNum, e.target.value)}
+                                className="w-14 lg:w-16 text-center bg-secondary/50 border-border/50 text-foreground focus:border-primary focus:ring-primary/20 rounded-lg"
+                                placeholder="-"
+                              />
+                            </td>
+                          )
+                        })}
+                        <td className={`px-4 lg:px-6 py-4 text-center text-sm font-bold ${getScoreColor(average !== '-' ? parseFloat(average) : null)}`}>
+                          {average}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Card>
         )}
       </div>
     </DashboardLayout>
