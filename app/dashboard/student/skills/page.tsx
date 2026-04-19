@@ -151,9 +151,9 @@ export default function StudentSkillsPage() {
             </div>
             <ResponsiveContainer width="100%" height={250}>
               <RadarChart data={skillsData}>
-                <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                <PolarAngleAxis dataKey="name" tick={{ fontSize: 10, fill: 'rgb(var(--muted-foreground))' }} />
-                <PolarRadiusAxis angle={90} domain={[0, 20]} tick={{ fontSize: 10, fill: 'rgb(var(--muted-foreground))' }} />
+                <PolarGrid stroke="rgba(255,255,255,0.2)" strokeWidth={1.5} />
+                <PolarAngleAxis dataKey="name" tick={{ fontSize: 12, fill: '#ffffff', fontWeight: 500 }} />
+                <PolarRadiusAxis angle={90} domain={[0, 20]} tick={{ fontSize: 11, fill: '#ffffff' }} />
                 <Radar
                   name="Habilidad"
                   dataKey="value"
