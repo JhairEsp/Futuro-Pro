@@ -157,11 +157,11 @@ export default function StudentSkillsPage() {
                 <Radar
                   name="Habilidad"
                   dataKey="value"
-                  stroke="rgb(var(--primary))"
-                  fill="rgb(var(--primary))"
-                  fillOpacity={0.3}
+                  stroke="#00ff00"
+                  fill="#00ff00"
+                  fillOpacity={0.4}
                   animationDuration={1000}
-                />
+              />
               </RadarChart>
             </ResponsiveContainer>
           </Card>
