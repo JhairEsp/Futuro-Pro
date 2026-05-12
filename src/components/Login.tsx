@@ -34,7 +34,7 @@ const Login: React.FC = () => {
           <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/30">
             <GraduationCap className="text-white" size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Talentrack</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">FuturoPro</h1>
           <p className="text-slate-400 text-center">Gestión Inteligente del Conocimiento Académico</p>
         </div>
 

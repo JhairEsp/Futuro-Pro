@@ -54,7 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
           <GraduationCap className="text-white" size={24} />
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight">Talentrack</h1>
+          <h1 className="text-xl font-bold tracking-tight">FuturoPro</h1>
           <p className="text-xs text-slate-400">Knowledge System</p>
         </div>
       </div>

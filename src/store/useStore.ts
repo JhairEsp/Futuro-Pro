@@ -88,7 +88,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   fetchInitialData: async () => {
     set({ isLoading: true });
-    console.log('🔄 Sincronizando con Nueva Estructura Relacional...');
+    console.log('🚀 FuturoPro - Sincronizando con Estructura Relacional...');
     try {
       const { data: users } = await supabase.from('users').select('*');
       const { data: students } = await supabase.from('students').select('*');

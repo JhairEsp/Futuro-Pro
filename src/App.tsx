@@ -51,7 +51,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white p-4">
         <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="font-bold animate-pulse text-indigo-400">Cargando Talentrack...</p>
+        <p className="font-bold animate-pulse text-indigo-400">Cargando FuturoPro...</p>
       </div>
     );
   }
