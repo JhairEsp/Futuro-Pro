@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Analytics } from '@vercel/analytics/react';
 import { useStore } from './store/useStore';
 import Layout from './components/Layout';
 import Login from './components/Login';
@@ -85,12 +84,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
-      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-        {renderContent()}
-      </Layout>
-      <Analytics />
-    </>
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+      {renderContent()}
+    </Layout>
   );
 };
 

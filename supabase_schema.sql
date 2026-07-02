@@ -15,6 +15,7 @@ CREATE TABLE users (
 CREATE TABLE students (
   id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   dni TEXT UNIQUE NOT NULL,
+  email TEXT DEFAULT 'a@gmail.com', -- Nuevo campo para notificaciones
   birth_date DATE,
   level TEXT CHECK (level IN ('Primaria', 'Secundaria')),
   grade INTEGER,

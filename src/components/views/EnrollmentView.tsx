@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Search, CheckCircle2, XCircle, CreditCard, Trash2, FileDown } from 'lucide-react';
+import PaymentReceipt from '../common/PaymentReceipt';
+import { Student } from '../../store/useStore';
 
 const EnrollmentView: React.FC = () => {
   const { user, students, enrollStudent, updateEnrollmentStatus, deleteStudent } = useStore();
@@ -9,9 +11,16 @@ const EnrollmentView: React.FC = () => {
   const [filterLevel, setFilterLevel] = useState<string>('All');
   const [filterGrade, setFilterGrade] = useState<string>('All');
   const [showForm, setShowForm] = useState(false);
+  const [selectedStudentForReceipt, setSelectedStudentForReceipt] = useState<Student | null>(null);
+
+  const handleMarkAsPaid = async (student: Student) => {
+    await updateEnrollmentStatus(student.id, true);
+    setSelectedStudentForReceipt(student);
+  };
   const [formData, setFormData] = useState({
     fullName: '',
     dni: '',
+    email: '',
     birthDate: '',
     level: 'Primaria' as 'Primaria' | 'Secundaria',
     grade: 1
@@ -31,6 +40,7 @@ const EnrollmentView: React.FC = () => {
     setFormData({
       fullName: '',
       dni: '',
+      email: '',
       birthDate: '',
       level: 'Primaria',
       grade: 1
@@ -153,13 +163,21 @@ const EnrollmentView: React.FC = () => {
                       <div className="flex items-center justify-end gap-3">
                         {!student.enrollmentPaid && (
                           <button 
-                            onClick={() => updateEnrollmentStatus(student.id, true)}
+                            onClick={() => handleMarkAsPaid(student)}
                             className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1"
                           >
                             <CreditCard size={14} /> Marcar Pago
                           </button>
                         )}
-                        {(user?.role === 'admin' || user?.role === 'coordinator') && (
+                        {student.enrollmentPaid && (
+                          <button 
+                            onClick={() => setSelectedStudentForReceipt(student)}
+                            className="text-emerald-600 hover:text-emerald-800 text-xs font-bold flex items-center gap-1"
+                          >
+                            <FileDown size={14} /> Ver Recibo
+                          </button>
+                        )}
+                        {(user?.role === 'admin' || user?.role === 'coordinator' || user?.role === 'coordinador') && (
                           <button 
                             onClick={() => {
                               if(confirm('¿Está seguro de eliminar este alumno?')) deleteStudent(student.id);
@@ -179,6 +197,15 @@ const EnrollmentView: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <AnimatePresence>
+        {selectedStudentForReceipt && (
+          <PaymentReceipt 
+            student={selectedStudentForReceipt} 
+            onClose={() => setSelectedStudentForReceipt(null)} 
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showForm && (
@@ -208,6 +235,17 @@ const EnrollmentView: React.FC = () => {
                     type="text"
                     value={formData.dni}
                     onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-slate-600">Correo Electrónico</label>
+                  <input
+                    required
+                    type="email"
+                    placeholder="ejemplo@correo.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
+import emailjs from '@emailjs/browser';
 
 export type Role = 'admin' | 'enrollment' | 'coordinator' | 'director' | 'teacher' | 'student' | 'profesor' | 'alumno' | 'matricula' | 'coordinador';
 
@@ -13,6 +14,7 @@ export interface User {
 
 export interface Student extends User {
   dni: string;
+  email: string;
   birthDate: string;
   level: 'Primaria' | 'Secundaria';
   grade: number;
@@ -75,6 +77,7 @@ interface AppState {
   deleteCourse: (courseId: number) => Promise<void>;
   addGrade: (grade: Grade) => Promise<void>;
   assignStudentToClassroom: (classroomId: string, studentId: string) => Promise<void>;
+  sendEmail: (to: string, subject: string, body: string) => Promise<boolean>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -105,6 +108,7 @@ export const useStore = create<AppState>((set, get) => ({
           const u = (users || []).find(user => user.id === s.id);
           return {
             ...s,
+            email: s.email || 'a@gmail.com', // Default for existing
             enrollmentPaid: s.enrollment_paid,
             levelRank: s.level_rank,
             birthDate: s.birth_date,
@@ -167,7 +171,7 @@ export const useStore = create<AppState>((set, get) => ({
     const id = Math.random().toString(36).substr(2, 9);
     const username = s.fullName.toLowerCase().replace(/\s+/g, '.') + id.substr(0, 3);
     const { error: uErr } = await supabase.from('users').insert([{ id, username, password: s.dni, full_name: s.fullName, role: 'student' }]);
-    const { error: sErr } = await supabase.from('students').insert([{ id, dni: s.dni, birth_date: s.birthDate, level: s.level, grade: s.grade }]);
+    const { error: sErr } = await supabase.from('students').insert([{ id, dni: s.dni, email: s.email, birth_date: s.birthDate, level: s.level, grade: s.grade }]);
     if (!uErr && !sErr) {
       const newS = { ...s, id, username, password: s.dni, role: 'student', points: 0, levelRank: 1, enrollmentPaid: false };
       set((state) => ({ students: [...state.students, newS], users: [...state.users, newS] }));
@@ -184,6 +188,38 @@ export const useStore = create<AppState>((set, get) => ({
   updateEnrollmentStatus: async (id, paid) => {
     const { error } = await supabase.from('students').update({ enrollment_paid: paid }).eq('id', id);
     if (!error) set((state) => ({ students: state.students.map(s => s.id === id ? { ...s, enrollmentPaid: paid } : s) }));
+  },
+
+  sendEmail: async (to, subject, body) => {
+    // Configura estas variables en tu .env.local después de crear cuenta en EmailJS
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || serviceId === 'your-service-id') {
+      console.warn('⚠️ Modo simulación: Configura EmailJS en .env.local para envíos reales.');
+      console.log(`Simulando envío a: ${to}\nAsunto: ${subject}\nCuerpo: ${body}`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return true;
+    }
+
+    try {
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          to_email: to,
+          subject: subject,
+          message: body,
+        },
+        publicKey
+      );
+      console.log(`✅ EmailJS: Correo enviado a ${to}`);
+      return true;
+    } catch (err) {
+      console.error('❌ Error de EmailJS:', err);
+      return false;
+    }
   },
 
   addClassroom: async (r) => {

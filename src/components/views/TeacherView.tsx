@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { motion } from 'framer-motion';
-import { BookOpen, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronRight, Mail } from 'lucide-react';
 
 interface GradeInputProps {
   initialValue: number | undefined;
@@ -65,9 +65,32 @@ const GradeInput: React.FC<GradeInputProps> = ({ initialValue, onSave }) => {
 };
 
 const TeacherView: React.FC = () => {
-  const { user, classrooms, students, courses, grades, addGrade } = useStore();
+  const { user, classrooms, students, courses, grades, addGrade, sendEmail } = useStore();
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendGrades = async () => {
+    if (!selectedCourse) return;
+    const courseName = courses.find(c => c.id === selectedCourse)?.name;
+    
+    setIsSending(true);
+    for (const student of roomStudents) {
+      const studentGrades = [1, 2, 3, 4, 5, 6, 7, 8]
+        .map(n => getGrade(student.id, n))
+        .filter(g => g !== undefined);
+      
+      if (studentGrades.length > 0) {
+        await sendEmail(
+          student.email || 'a@gmail.com',
+          `Reporte de Notas: ${courseName} - FuturoPro`,
+          `Hola ${student.fullName}, tus notas en ${courseName} han sido actualizadas. Promedio actual: ${(studentGrades.reduce((a,b)=>a+b,0)/studentGrades.length).toFixed(1)}`
+        );
+      }
+    }
+    setIsSending(false);
+    alert('✅ Notas enviadas a los correos de los alumnos.');
+  };
 
   const teacherRooms = classrooms.filter(c => 
     c.assignments?.some(a => a.teacherId === user?.id) || user?.role === 'admin' || user?.role === 'profesor'
@@ -134,9 +157,20 @@ const TeacherView: React.FC = () => {
             >
               ← <span className="underline">Volver a Salones</span>
             </button>
-            <div className="text-right">
-              <h3 className="text-xl font-bold text-slate-800">{currentRoom?.name}</h3>
-              <p className="text-xs text-slate-500 italic">Notas guardadas automáticamente al salir del cuadro.</p>
+            <div className="flex items-center gap-4">
+              {selectedCourse && (
+                <button 
+                  onClick={handleSendGrades}
+                  disabled={isSending}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-all disabled:opacity-50"
+                >
+                  <Mail size={16} /> {isSending ? 'ENVIANDO...' : 'ENVIAR NOTAS'}
+                </button>
+              )}
+              <div className="text-right">
+                <h3 className="text-xl font-bold text-slate-800">{currentRoom?.name}</h3>
+                <p className="text-xs text-slate-500 italic">Notas automáticas.</p>
+              </div>
             </div>
           </div>
 
