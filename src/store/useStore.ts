@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
+import emailjs from '@emailjs/browser';
 
 export type Role = 'admin' | 'enrollment' | 'coordinator' | 'director' | 'teacher' | 'student' | 'profesor' | 'alumno' | 'matricula' | 'coordinador';
 
@@ -76,7 +77,7 @@ interface AppState {
   deleteCourse: (courseId: number) => Promise<void>;
   addGrade: (grade: Grade) => Promise<void>;
   assignStudentToClassroom: (classroomId: string, studentId: string) => Promise<void>;
-  sendEmail: (to: string, subject: string, body: string) => Promise<boolean>;
+  sendEmail: (to: string, subject: string, body: string, attachment?: string) => Promise<boolean>;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -189,45 +190,33 @@ export const useStore = create<AppState>((set, get) => ({
     if (!error) set((state) => ({ students: state.students.map(s => s.id === id ? { ...s, enrollmentPaid: paid } : s) }));
   },
 
-  sendEmail: async (to, subject, body) => {
-    const apiKey = import.meta.env.VITE_RESEND_API_KEY;
-    
-    if (!apiKey || apiKey === 'your-resend-key-here') {
-      console.warn('⚠️ No se encontró VITE_RESEND_API_KEY en .env.local. Usando modo simulación.');
+  sendEmail: async (to, subject, body, attachment) => {
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || serviceId === 'your-service-id') {
+      console.warn('⚠️ Modo simulación');
       await new Promise(resolve => setTimeout(resolve, 1000));
       return true;
     }
 
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          from: 'FuturoPro <onboarding@resend.dev>', // Resend permite este remitente por defecto para pruebas
-          to: [to],
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          to_email: to,
           subject: subject,
-          html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                  <h2 style="color: #4f46e5;">FuturoPro - Notificación Oficial</h2>
-                  <p>${body}</p>
-                  <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-                  <p style="font-size: 12px; color: #666;">Este es un correo automático, por favor no responda.</p>
-                </div>`
-        })
-      });
-
-      if (response.ok) {
-        console.log(`✅ Correo real enviado a ${to}`);
-        return true;
-      } else {
-        const error = await response.json();
-        console.error('❌ Error de Resend:', error);
-        return false;
-      }
+          message: body,
+          attachment_data: attachment || '', // Enviamos el PDF si existe
+        },
+        publicKey
+      );
+      console.log(`✅ EmailJS: Correo enviado a ${to}`);
+      return true;
     } catch (err) {
-      console.error('❌ Error de red al enviar email:', err);
+      console.error('❌ Error de EmailJS:', err);
       return false;
     }
   },

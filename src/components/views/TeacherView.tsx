@@ -77,14 +77,26 @@ const TeacherView: React.FC = () => {
     setIsSending(true);
     for (const student of roomStudents) {
       const studentGrades = [1, 2, 3, 4, 5, 6, 7, 8]
-        .map(n => getGrade(student.id, n))
-        .filter(g => g !== undefined);
+        .map(n => getGrade(student.id, n));
       
-      if (studentGrades.length > 0) {
+      const actualGrades = studentGrades.filter((g): g is number => g !== undefined);
+      
+      if (actualGrades.length > 0) {
+        const avg = (actualGrades.reduce((a,b)=>a+b,0)/actualGrades.length).toFixed(1);
+        
+        // REPORTE DE NOTAS EN TEXTO PROFESIONAL (Evita problemas de renderizado HTML)
+        const textReport = `
+          RESUMEN ACADÉMICO: ${courseName}
+          ------------------------------------------
+          ${studentGrades.map((g, i) => `Examen ${i+1}: ${g !== undefined ? g : '-'}`).join('\n          ')}
+          ------------------------------------------
+          PROMEDIO ACTUAL: ${avg}
+        `;
+
         await sendEmail(
           student.email || 'a@gmail.com',
-          `Reporte de Notas: ${courseName} - FuturoPro`,
-          `Hola ${student.fullName}, tus notas en ${courseName} han sido actualizadas. Promedio actual: ${(studentGrades.reduce((a,b)=>a+b,0)/studentGrades.length).toFixed(1)}`
+          `Notas: ${courseName} - ${student.fullName}`,
+          textReport
         );
       }
     }

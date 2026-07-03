@@ -17,13 +17,35 @@ const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ student, onClose }) => 
 
   const handleSendEmail = async () => {
     setIsSending(true);
-    const success = await sendEmail(
-      student.email || 'a@gmail.com',
-      `Comprobante de Matrícula - FuturoPro - ${student.fullName}`,
-      `Estimado(a) ${student.fullName}, confirmamos el pago de su matrícula. Adjunto encontrará su constancia oficial.`
-    );
-    setIsSending(false);
-    if (success) alert(`✅ Comprobante enviado a: ${student.email || 'a@gmail.com'}`);
+    try {
+      const success = await sendEmail(
+        student.email || 'a@gmail.com',
+        `Matrícula Exitosa - FuturoPro - ${student.fullName}`,
+        `¡Bienvenido(a) a FuturoPro!
+
+        Se ha confirmado el pago exitoso de su matrícula para el periodo 2024.
+
+        DATOS DEL ALUMNO:
+        - Nombre: ${student.fullName}
+        - DNI: ${student.dni}
+        - Nivel: ${student.level}
+        - Grado: ${student.grade}°
+
+        ACCESO AL PORTAL:
+        - Usuario: ${student.username}
+        - Contraseña: Su número de DNI
+
+        Atentamente,
+        Tesorería de FuturoPro.`
+      );
+      
+      if (success) alert(`✅ Notificación enviada a: ${student.email || 'a@gmail.com'}.`);
+    } catch (err) {
+      console.error(err);
+      alert("Error al procesar el envío.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const downloadPDF = async () => {
