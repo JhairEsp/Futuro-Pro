@@ -89,9 +89,6 @@ const Login: React.FC = () => {
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-700 text-center">
-          <p className="text-xs text-slate-500">
-            Administración: administracion / admin123
-          </p>
         </div>
       </motion.div>
     </div>
